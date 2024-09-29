@@ -1,7 +1,7 @@
 // import Docker from "dockerode";
 
 // import { TestCases } from "../types/testCases";
-import { PYTHON_IMAGE } from "../utils/constants";
+import { JAVA_IMAGE } from "../utils/constants";
 import createContainer from "./containerFactory";
 import decodeDockerStream from "./dockerHelper";
 import pullImage from "./pullImage";
@@ -9,14 +9,13 @@ import pullImage from "./pullImage";
 
 
 // creating of docker container
-async function runPython(code: string, inputTestCase: string ) {
+async function runJava(code: string, inputTestCase: string ) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rawLogBuffer: Buffer[] =  [];
 
-    console.log("Initializing a new python docker conatiner");
-
-    await pullImage(PYTHON_IMAGE);
+    console.log("Initializing a new java docker conatiner");
+    await pullImage(JAVA_IMAGE);
 
 
     // const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ['python3', '-c', code, 'stty -echo']);// to run python code in terminal python3 -c "code", stty -echo :- when we run the code in docker then normally it will not come that why we use stty -echo :- 
@@ -29,19 +28,19 @@ async function runPython(code: string, inputTestCase: string ) {
 
 // for starting/ booting the python docker container or correcponding docker container
 
-const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.py && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | python3 test.py`;
+const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > Main.java && javac Main.java && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | java Main`;
         console.log(runCommand);
         // const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ['python3', '-c', code, 'stty -echo']); 
-        const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
+        const javaDockerContainer = await createContainer(JAVA_IMAGE, [
             '/bin/sh', 
             '-c',
             runCommand
         ]);
-await pythonDockerContainer.start();
+await javaDockerContainer.start();
 
 console.log("Started the docker container");
 
-const loggerStream = await pythonDockerContainer.logs({
+const loggerStream = await javaDockerContainer.logs({
     stdout: true,
     stderr: true,
     timestamps: false,
@@ -65,12 +64,12 @@ await new Promise((res)=>{
     });
 });
 
-await pythonDockerContainer.remove();
+await javaDockerContainer.remove();
 
 
-return pythonDockerContainer;
+return javaDockerContainer;
 }
 
 
 
-export default runPython;
+export default runJava;
